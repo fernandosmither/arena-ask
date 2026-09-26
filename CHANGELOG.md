@@ -2,6 +2,13 @@
 
 All notable changes to ARENA Ask. Versions follow [semantic versioning](https://semver.org).
 
+## 1.0.2 (2026-09-26)
+
+### Changed
+
+- Version bump only, for the first public Firefox Add-ons listing (1.0.0 and 1.0.1 were used for
+  self-distributed signed builds). No functional changes.
+
 ## 1.0.1 (2026-09-26)
 
 ### Changed

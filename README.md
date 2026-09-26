@@ -414,7 +414,7 @@ pnpm install --frozen-lockfile
 pnpm zip:firefox
 ```
 
-This writes `.output/firefox-mv3/` (the add-on's files) and `.output/arena-ask-1.0.1-firefox.zip`,
+This writes `.output/firefox-mv3/` (the add-on's files) and `.output/arena-ask-1.0.2-firefox.zip`,
 the same package as the one submitted (checked: a rebuild from the sources zip is byte-identical).
 The build bundles the TypeScript sources with WXT/Vite; no code is fetched at build time or at run
 time. pnpm 10 may warn that it ignored the build scripts of `esbuild` and `spawn-sync`; the build

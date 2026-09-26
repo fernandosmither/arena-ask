@@ -3,7 +3,7 @@
   "description": "Unofficial: use your own Claude or ChatGPT subscription in the \"Ask a Question\" box on learn.arena.education.",
   "license": "MIT",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "scripts": {
     "dev": "wxt",
