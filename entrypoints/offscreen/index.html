@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ARENA Ask relay</title>
+    <!-- Chrome only: Firefox has no offscreen documents and uses pinned tabs instead. -->
+    <meta name="manifest.include" content="['chrome']" />
+  </head>
+  <body>
+    <!-- Invisible claude.ai / chatgpt.com pages (the relay content scripts run inside them), created
+         by main.ts on each provider's first question. Framing is allowed by session DNR rules that
+         strip X-Frame-Options/CSP for tabId -1 sub_frames only. -->
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

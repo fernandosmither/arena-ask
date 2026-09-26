@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- ARENA Ask logo: a chat bubble (ARENA's "Ask a Question" box) with a spark (an answer), in a
+       neutral slate and indigo that belong to no AI company or course. Source of truth for the
+       extension icons (public/icon/*.png; `pnpm icons`) and the promo tile's mark. -->
+  <rect x="3" y="3" width="122" height="122" rx="30" fill="#EEF1F8" stroke="#CDD4E3" stroke-width="2"/>
+  <path d="M30 38 a12 12 0 0 1 12 -12 h44 a12 12 0 0 1 12 12 v30 a12 12 0 0 1 -12 12 H58 l-16 14 v-14 h0 a12 12 0 0 1 -12 -12 Z"
+        fill="none" stroke="#4A56B0" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M64 37 C64 45.5 66.5 48 75 48 C66.5 48 64 50.5 64 59 C64 50.5 61.5 48 53 48 C61.5 48 64 45.5 64 37 Z" fill="#4A56B0"/>
+</svg>

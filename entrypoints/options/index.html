@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>ARENA Ask settings</title>
+    <!-- options_ui, opened in its own tab (not a popup or side panel). -->
+    <meta name="manifest.open_in_tab" content="true" />
+    <link rel="icon" href="/icon/32.png" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header class="masthead">
+        <img src="/icon/128.png" alt="" width="48" height="48" />
+        <div>
+          <h1>ARENA Ask</h1>
+          <p class="lede">
+            Answers the <strong>Ask a Question</strong> box on learn.arena.education from your own
+            claude.ai or chatgpt.com account. Pick <strong>My Claude</strong> or
+            <strong>My ChatGPT</strong> in the box's model menu.
+          </p>
+          <p class="unofficial">Unofficial. Not affiliated with Anthropic, OpenAI or ARENA.</p>
+        </div>
+      </header>
+
+      <p id="load-error" class="banner error" role="alert" hidden>
+        Couldn't reach ARENA Ask's background. Reload this page; if it keeps happening, reload the
+        extension.
+      </p>
+
+      <div class="grid">
+        <div class="col">
+          <section aria-labelledby="h-access">
+            <h2 id="h-access">Claude access</h2>
+            <fieldset id="mode" disabled>
+              <legend class="visually-hidden">Claude access mode</legend>
+              <label class="choice">
+                <input type="radio" name="mode" value="full" />
+                <span class="choice-body">
+                  <span class="choice-title">Full account <span class="tag">Default</span></span>
+                  <span class="choice-text">A normal chat on your claude.ai account: memory, past chats, preferences and web search apply. Actions are stopped and handed to you (they may have started).</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="mode" value="locked" />
+                <span class="choice-body">
+                  <span class="choice-title">Locked</span>
+                  <span class="choice-text">A plain tutor in a private ARENA project: no connectors, memory, past chats, preferences, web search or code; a few built-in helper tools remain (using one ends the answer). My ChatGPT is off.</span>
+                </span>
+              </label>
+            </fieldset>
+            <p class="note">Applies from the next question. After a switch, each chapter starts a new chat.</p>
+          </section>
+
+          <section aria-labelledby="h-risk" class="risk">
+            <h2 id="h-risk">Before you rely on it</h2>
+            <p>
+              Anything on learn.arena.education (the lesson text, the page's scripts, its saved
+              chat) travels with your question, so it can steer the answer, and the page can read
+              the answer. In full mode that answer can draw on your memory and past chats. Actions
+              such as sending email are stopped and handed to you to approve, but may already have
+              started (Claude) or run (ChatGPT, whose Stop was seen to land about 2 seconds late).
+              Only approve actions you asked for.
+            </p>
+          </section>
+        </div>
+
+        <div class="col">
+          <section aria-labelledby="h-memory">
+            <h2 id="h-memory">ChatGPT memory</h2>
+            <label class="switch-row">
+              <span class="switch-text">
+                <span class="switch-title">Don't let ARENA chats write to ChatGPT memory</span>
+                <span class="switch-desc">Marks ARENA Ask's ChatGPT chats "don't remember". ChatGPT then can't see your saved memories in them either, and a new chat is covered from its second question. Turned off, a marked chat is unmarked the next time you ask in it. Off by default.</span>
+              </span>
+              <input id="gpt-dnr" type="checkbox" role="switch" class="switch" disabled />
+            </label>
+          </section>
+
+          <section aria-labelledby="h-pins">
+            <h2 id="h-pins">Pinned accounts</h2>
+            <p class="note">
+              Full-mode Claude and My ChatGPT each stick to the account their first question went
+              out from, and refuse others. Locked mode doesn't check the pin: it uses the claude.ai
+              account you're signed in to. Forget it to pin the account you're signed in to next time.
+            </p>
+            <div class="pin-row">
+              <div>
+                <span class="pin-name">Claude</span>
+                <span class="pin-state" id="pin-claude">…</span>
+              </div>
+              <button type="button" id="forget-claude" disabled>Forget pinned account</button>
+            </div>
+            <div class="pin-row">
+              <div>
+                <span class="pin-name">ChatGPT</span>
+                <span class="pin-state" id="pin-chatgpt">…</span>
+              </div>
+              <button type="button" id="forget-chatgpt" disabled>Forget pinned account</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <footer>
+        <a id="link-readme" href="#" target="_blank" rel="noopener noreferrer">How it works</a>
+        <a id="link-privacy" href="#" target="_blank" rel="noopener noreferrer">Privacy policy</a>
+        <a id="link-issues" href="#" target="_blank" rel="noopener noreferrer">Report a problem</a>
+        <span id="version" class="version"></span>
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

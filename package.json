@@ -1,0 +1,28 @@
+{
+  "name": "arena-ask",
+  "description": "Unofficial: use your own Claude or ChatGPT subscription in the \"Ask a Question\" box on learn.arena.education.",
+  "license": "MIT",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "zip:store": "node scripts/zip-store.mjs",
+    "compile": "tsc --noEmit",
+    "icons": "node scripts/gen-icons.mjs",
+    "test": "wxt prepare && vitest run",
+    "postinstall": "wxt prepare"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "jsdom": "29.1.1",
+    "typescript": "^5.9.3",
+    "vitest": "4.1.8",
+    "wxt": "^0.20.26"
+  }
+}
