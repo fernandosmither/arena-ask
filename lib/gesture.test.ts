@@ -1347,13 +1347,22 @@ describe('installGestureCapture', () => {
         gate = new GestureGate();
         cap = install();
       };
+      /** Values the restore seeded the gate with (the bridge's onRestored → capture.noteModel). */
+      let seeded: string[] = [];
       /** The bridge's tick: our options, and the remembered choice restored into the real dropdown. */
-      const restore = (want: string | null) => ensureModelOptions(document, PROVIDERS, want, (v) => cap.noteModel(v));
+      const restore = (want: string | null) =>
+        ensureModelOptions(document, PROVIDERS, want, (v) => {
+          seeded.push(v);
+          cap.noteModel(v);
+        });
       const send = (q: string) => {
         type(q);
         clickSend();
         return arenaSends();
       };
+      beforeEach(() => {
+        seeded = [];
+      });
 
       it('pick My Claude, ask; reload restoring My ChatGPT: the Send goes to ChatGPT, as the dropdown shows', () => {
         reload();
@@ -1363,6 +1372,7 @@ describe('installGestureCapture', () => {
         reload(); // meanwhile My ChatGPT was picked in another ARENA tab: that is the stored choice now
         restore('my-chatgpt');
         expect(select().value).toBe('my-chatgpt');
+        expect(seeded).toEqual(['my-chatgpt']);
         expect(routeOf(askAs(send('Reply with exactly: ok'), 'my-chatgpt'))).toBe('chatgpt');
         // ARENA reads the dropdown at the Send, so its request names my-chatgpt; one naming Claude is refused
         expect(askAs(send('again'), 'my-claude')).toEqual({ ok: false, why: 'model' });
@@ -1376,6 +1386,7 @@ describe('installGestureCapture', () => {
         select().value = 'my-claude'; // the page, silently, on the new element
         expect(askAs(send('q1'), 'my-claude')).toEqual({ ok: false, why: 'model' });
         restore('my-claude'); // the bridge's next tick (the viewer's remembered choice)
+        expect(seeded).toEqual(['my-claude']);
         expect(routeOf(askAs(send('q2'), 'my-claude'))).toBe('claude');
       });
 
@@ -1383,8 +1394,8 @@ describe('installGestureCapture', () => {
         reload();
         restore('my-chatgpt');
         select().value = 'my-claude'; // the page, silently
-        const r = askAs(send('q1'), 'my-claude');
-        expect(r).toEqual({ ok: false, why: 'model' });
+        // Refused at the Send itself: not even an ask naming the recorded choice gets through.
+        expect(askAs(send('q1'), 'my-chatgpt')).toEqual({ ok: false, why: 'model' });
         expect(refusalMessage('model')).toMatch(/Pick the model again, then send\.$/);
         select().value = 'my-chatgpt'; // and back: still what the viewer's choice was, so it counts
         expect(routeOf(askAs(send('q2'), 'my-chatgpt'))).toBe('chatgpt');
@@ -1407,12 +1418,69 @@ describe('installGestureCapture', () => {
         select().innerHTML = ARENA_OPTIONS; // ARENA re-renders: our options are gone
         restore('my-chatgpt');
         expect(select().value).toBe('my-chatgpt');
+        expect(seeded).toEqual(['my-chatgpt', 'my-chatgpt']);
         expect(routeOf(askAs(send('q1'), 'my-chatgpt'))).toBe('chatgpt');
         // A page script removing our options and selecting My Claude gets the viewer's choice back.
         select().innerHTML = ARENA_OPTIONS;
         restore('my-chatgpt');
         select().value = 'my-claude';
         expect(askAs(send('q2'), 'my-claude')).toEqual({ ok: false, why: 'model' });
+        expect(askAs(send('q3'), 'my-chatgpt')).toEqual({ ok: false, why: 'model' });
+      });
+    });
+
+    // Codex review of 1.0.1 (gpt-6-astra). The dropdown the viewer sees must be the one the gate reads.
+    describe('the dropdown the viewer sees', () => {
+      const send = (q: string) => {
+        type(q);
+        clickSend();
+        return arenaSends();
+      };
+      beforeEach(() => {
+        const opt = document.createElement('option');
+        opt.value = 'my-chatgpt';
+        select().appendChild(opt); // (innerHTML += would reset the selection)
+        expect(select().value).toBe('my-claude');
+      });
+
+      it("a page moving the dropdown's id to a select of its own (the real one kept in the page, hidden): refused", () => {
+        const real = select(); // My Claude, chosen (beforeEach)
+        real.removeAttribute('id');
+        real.style.display = 'none';
+        const shown = document.createElement('select');
+        shown.id = 'chat-model';
+        shown.innerHTML = '<option value="my-claude">c</option><option value="my-chatgpt">g</option>';
+        real.after(shown);
+        choose('my-chatgpt'); // the viewer picks My ChatGPT in the page's select: the gate never sees it
+        // ARENA's code still reads the real select (my-claude): that ask, or one naming ChatGPT, is refused
+        expect(askAs(send('q1'), 'my-claude')).toEqual({ ok: false, why: 'model' });
+        expect(askAs(send('q2'), 'my-chatgpt')).toEqual({ ok: false, why: 'model' });
+      });
+
+      it('a second element claiming #chat-model: refused', () => {
+        const other = document.createElement('div');
+        other.id = 'chat-model';
+        document.body.appendChild(other);
+        expect(askAs(send('q1'), 'my-claude')).toEqual({ ok: false, why: 'model' });
+        other.remove();
+        expect(askAs(send('q2'), 'my-claude').ok).toBe(true);
+      });
+
+      it('the real select hidden (a page could draw its own in its place): refused', () => {
+        const real = select() as HTMLSelectElement & { checkVisibility?: () => boolean };
+        real.checkVisibility = () => false; // jsdom has no layout: what Chrome reports for display:none
+        expect(askAs(send('q1'), 'my-claude')).toEqual({ ok: false, why: 'model' });
+        real.checkVisibility = () => true;
+        expect(askAs(send('q2'), 'my-claude').ok).toBe(true);
+      });
+
+      it('a later Send of the same question refused for its model voids the earlier Send', () => {
+        type('same question');
+        clickSend(); // My Claude: pending (say the page swallowed ARENA's request)
+        select().value = 'my-chatgpt'; // the page, silently
+        clickSend(); // the viewer sends the unchanged question again: refused (model)
+        // The page now asks with the earlier Send's model: refused, not sent under the earlier Send.
+        expect(askAs('same question', 'my-claude')).toEqual({ ok: false, why: 'model' });
       });
     });
   });

@@ -619,11 +619,14 @@ text on the ARENA page talks ChatGPT into can run once before you see the note.
   - *Model*: the provider a question goes to is the one **you** picked: the capture records the
     dropdown's value from trusted `input`/`change` events on ARENA's real `#chat-model` (a value a
     page listener sets between your `input` and the browser's `change` is no choice at all), or the
-    choice the extension restored from its own storage; a Send arms only while the dropdown still
-    shows that model (a script can set its value without any event), the gesture carries it, and
-    the ask must name the same model; the bridge routes by the gesture's model, never by what
-    ARENA's request says. So a script can't send your typed question to My ChatGPT while you picked
-    My Claude (or the other way round).
+    choice the extension restored from its own storage (in the isolated world, so it counts as
+    chosen); a Send arms only while the dropdown still shows that model (a script can set its value
+    without any event), and only while that select is the page's one and only `#chat-model` and
+    isn't hidden (a page moving the id to a select of its own would show you choices the gate never
+    sees); a Send refused for its model also voids an earlier pending Send of the same text. The
+    gesture carries the model, and the ask must name the same one; the bridge routes by the
+    gesture's model, never by what ARENA's request says. So a script can't send your typed
+    question to My ChatGPT while you picked My Claude (or the other way round).
   - *Why*: a Send that arms nothing records the reason, and ARENA's ask for that text (within 60 s)
     is refused with a specific message instead of the generic one.
   - "Clear chat history" resets the chapter's conversation only on a trusted click on the real
@@ -701,7 +704,8 @@ text on the ARENA page talks ChatGPT into can run once before you see the note.
   - read the answers ARENA shows (it's their page) and supply or alter the context ARENA builds (it
     is page data either way); they can change the model the dropdown shows, but a Send then refuses
     until you pick it again, and they can't send your question to another provider than the one
-    you picked;
+    you picked in ARENA's real dropdown (a page can still draw a look-alike over it, which the
+    extension can't see: the question then goes to the model the real one holds);
   - choose what you paste: a page `copy`/`cut` handler, or its own copy buttons
     (`navigator.clipboard`), can put any text on your clipboard. The gate proves you pasted it, not
     who wrote it; you see it in the box before you send it;

@@ -106,12 +106,14 @@ export class GestureGate {
   /**
    * A Send (or Enter) that armed nothing: an ask for this text within the TTL is told `why`. A
    * composing Enter also voids a pending gesture for the same text: ARENA sends the half-composed
-   * text on it, and that must not go out.
+   * text on it, and that must not go out. So does a Send refused for its model.
    */
   refuse(prompt: string, why: Refusal, at: number): void {
     const p = prompt.trim();
     if (!p) return;
-    if (why === 'composing') this.pending = this.pending.filter((g) => g.prompt !== p);
+    // A later Send of the same text that was refused for its model voids an earlier one too: the
+    // ask ARENA then makes must not go out under that earlier Send's model.
+    if (why === 'composing' || why === 'model') this.pending = this.pending.filter((g) => g.prompt !== p);
     this.note(p, at, why);
   }
 
@@ -550,6 +552,15 @@ export function buttonShown(btn: Element, win: Window): boolean {
   return opacity >= MIN_OPACITY;
 }
 
+/**
+ * Is ARENA's model select rendered at all (not `display: none`, `visibility: hidden` or fully
+ * transparent, itself or through an ancestor)? Where `checkVisibility` is missing, assume it is.
+ */
+export function selectShown(sel: Element): boolean {
+  const check = (sel as HTMLElement).checkVisibility;
+  return typeof check !== 'function' || check.call(sel, { opacityProperty: true, visibilityProperty: true });
+}
+
 /** Is the button (or a child of it) topmost at (x, y)? */
 function topmostAt(btn: Element, doc: Document, x: number, y: number): boolean {
   const hit = typeof doc.elementFromPoint === 'function' ? doc.elementFromPoint(x, y) : null;
@@ -656,9 +667,14 @@ export function installGestureCapture(o: CaptureOptions): GestureCapture {
     }
     const prompt = v.trim();
     if (!prompt) return;
-    // The dropdown must show the model the viewer chose (a script can set its value without an event).
-    const shown = modelSel.get()?.value ?? null;
-    if (chosen === null || shown !== chosen) return refuse('model');
+    // The dropdown must show the model the viewer chose (a script can set its value without an event),
+    // and be the one the viewer sees: the only #chat-model in the page, not hidden. A page that moved
+    // the id to a select of its own (the real one kept in the page, hidden) shows the viewer choices
+    // the gate never sees.
+    const sel = modelSel.get();
+    const all = o.doc.querySelectorAll(ARENA_SEL.modelSelect);
+    if (!sel || all.length !== 1 || all[0] !== sel || !selectShown(sel)) return refuse('model');
+    if (chosen === null || sel.value !== chosen) return refuse('model');
     const w = o.where();
     o.gate.arm({ prompt, at: now(), chapterPath: w.chapterPath, chapter: w.chapter, seq: text.seq, model: chosen });
   };

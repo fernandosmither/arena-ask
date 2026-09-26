@@ -86,9 +86,11 @@ export class MetaStore {
   /**
    * Metadata for the answer bubble whose text hashes to `hash` and that sits at `index`
    * (answerIndexOf). In order: the entry recorded for exactly that answer (for `conv` if given,
-   * else the newest); a legacy hash-only entry; the only entry for that text, if there is exactly
-   * one (e.g. positions shifted). Identical texts at other positions never borrow each other's
-   * entry. Without `index` (old callers) only the last two apply.
+   * else the newest); a legacy hash-only entry (recorded without a position). An entry recorded at
+   * another position is never borrowed: the same text there may be another service's answer, or
+   * ARENA's own model's, and would get the wrong footer (ARENA re-renders its history in order, so
+   * positions don't shift). Without `index` (old callers): a legacy entry, else the only entry
+   * for that text.
    */
   lookup = (hash: string, index?: number, conv?: string | null): BubbleMeta | undefined => {
     const keys = this.byHash.get(hash);
@@ -102,7 +104,7 @@ export class MetaStore {
         if (conv !== undefined && s.conv === conv) return m;
         if (!best || m.t > best.t) best = m;
       }
-      if (best) return best;
+      return best ?? this.map.get(hash);
     }
     const legacy = this.map.get(hash);
     if (legacy) return legacy;

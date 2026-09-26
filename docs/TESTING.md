@@ -142,7 +142,8 @@ spent on the web app's own new chat; the "Round 7" rows: after the round-6 revie
 4 completions; the "Round 8" rows: My ChatGPT, same day, 10 ChatGPT messages + 1 claude.ai; the
 "Round 9" rows: after the round-8 review fixes, 2026-09-26, 4 ChatGPT messages + 1 claude.ai; the
 "Round 10" rows: the Options page and the store screenshots, 2026-09-26, 1 claude.ai + 1 ChatGPT
-message; the "Round 11" rows: 1.0.1, same day, 2 claude.ai + 1 ChatGPT message). Delete every
+message; the "Round 11" rows: 1.0.1, same day, 2 claude.ai + 1 ChatGPT message, the review-fix
+row through a disconnected bridge in a throwaway headless profile, no message). Delete every
 conversation and scratch project you create afterwards. Ask for yes/no or counts in a fixed format
 and read back only those (a regex over the bubble), never the answer's text: full-mode answers can
 carry personal data. Never read or write the system clipboard
@@ -211,6 +212,7 @@ tests.
 | Round 11: switch after an answer | trusted `m` on the dropdown after both answers | earlier footers unchanged ("Open in claude.ai", "Open in ChatGPT"); the new choice saved |
 | Round 11: dropdown set by a script | page sets `#chat-model.value` (no event) to the other service, then type + trusted Send | refused "… Pick the model again, then send."; nothing reached the service worker |
 | Round 11: usage footer | the Claude answer re-rendered after a reload, a fresh answer, and the stored usage forced to 0.97 / 0.85 | `7d 74% · 5h 7%`, then `7d 75% · 5h 11%`, tooltip naming both limits; forced: `5h 97% · 7d 85%` bold, red and amber (ARENA dark `#fca5a5` / `#fbbf24`, light `#dc2626` / `#b45309`); the ChatGPT footer shows no usage |
+| Round 11: after the review fixes | throwaway headless profile, window 1400×900 (below ~760 px ARENA hides its sidebar, dropdown included), My Claude by trusted typeahead, extension reloaded (the tab's bridge disconnected); type + trusted Send: as is; after the page moved `id="chat-model"` to a select of its own (the real one hidden); with a second `#chat-model` in the page; with that one removed | as is: accepted by the gate ("ARENA Ask was restarted or updated mid-answer", nothing sent); moved id and second `#chat-model`: "… Pick the model again, then send."; removed again: accepted |
 
 Accepted asks without spending completions: open the ARENA tab, then `node $H reload`. That tab
 keeps its (now disconnected) bridge, whose gate still runs: an accepted ask fails with "ARENA Ask

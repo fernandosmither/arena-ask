@@ -47,8 +47,9 @@ streams into ARENA's bubble from your account, rendered as markdown, with a link
   than instructions (on claude.ai as an `arena-course-context.md` attachment; on ChatGPT inline).
 - **Footer** under each answer: **Open in claude.ai ↗** with your claude.ai usage for both limits
   (`7d 74% · 5h 4%`: the 7-day and 5-hour windows, the one closest to its limit first, amber from
-  80% and red from 95%), or **Open in ChatGPT ↗** with the model that answered. ARENA keeps saving the chat history as usual; answers
-  are re-rendered with their footer when you reload the page.
+  80% and red from 95%), or **Open in ChatGPT ↗** with the model that answered. ARENA keeps
+  saving the chat history as usual; answers are re-rendered with their footer when you reload the
+  page.
 - **No servers of ours, no telemetry, no analytics.** See [Privacy](#privacy).
 
 ## Install
@@ -257,6 +258,9 @@ Read these before relying on full mode. The Options page summarises them in one 
   anything on your clipboard through its copy buttons. You see it in the box before you send.
 - **An early Send.** A page can move ARENA's Send button under your pointer (or make it
   transparent), so the text you've typed so far goes out early. It can't change that text.
+- **A look-alike dropdown.** A page can draw its own model menu on top of ARENA's. Your question
+  still goes only to the model picked in ARENA's real dropdown (a replaced, duplicated or hidden
+  one is refused), which may not be the one the look-alike shows.
 - **The hidden frames run without claude.ai's / chatgpt.com's Content Security Policy** (only
   those frames, only loaded by this extension). The ChatGPT send guard hardens against chatgpt.com's
   own code misbehaving; it is not a boundary against hostile code running as chatgpt.com.
@@ -291,7 +295,7 @@ ARENA shows "ARENA Ask couldn't send that question." plus the reason:
 | Space/Enter on a Send button the page focused (not you, with Tab) | click the Send button, or press Enter in the box |
 | Text dragged from the page itself and dropped in the box | type or paste your question instead |
 | The page's chapter data or address isn't the chapter it was loaded for | reload the page and ask again |
-| The dropdown shows (or ARENA's request names) a model you didn't pick | pick the model again, then send |
+| The dropdown shows (or ARENA's request names) a model you didn't pick, or ARENA's dropdown was replaced or hidden | pick the model again, then send |
 | More than 60 s between Send and ARENA's request, or no Send at all | the generic "only sends a question you typed…" |
 | A team/enterprise account, or not the pinned one | switch account, or Forget pinned account in the Options |
 
@@ -336,7 +340,7 @@ When one of these changes, ARENA Ask refuses or ends the answer with a message r
 - The dropdown remembers the model you last picked (in any ARENA tab) and shows it again after a
   reload. Earlier answers keep the footer of the service that answered them, so "My ChatGPT" in
   the dropdown next to an "Open in claude.ai" footer is expected: the next question goes to what
-  the dropdown shows.
+  ARENA's dropdown shows.
 
 **My ChatGPT specifically:**
 

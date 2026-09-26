@@ -14,11 +14,25 @@ All notable changes to ARENA Ask. Versions follow [semantic versioning](https://
 - A Send while ARENA's dropdown shows a model other than the one you picked is refused with
   "… Pick the model again, then send." (was "Pick My Claude or My ChatGPT in the dropdown again").
 
+### Fixed
+
+- A page script that moved the dropdown's `id` to a select of its own (keeping ARENA's real one in
+  the page, hidden) could show you one model while your question went to the one the real
+  dropdown held. A Send now also needs ARENA's dropdown to be the page's only `#chat-model` and
+  not hidden.
+- A Send refused for its model now also voids an earlier, still pending Send of the same question
+  (a page holding back ARENA's first request could otherwise still send it under the first Send's
+  model).
+- An answer whose own footer data was missing (never recorded, or pruned after 300 answers in a
+  chapter) could borrow the footer of the same text at another position: an "ok" from ARENA's own
+  model or from ChatGPT could get Claude's link and usage. Footers now only come from the answer's
+  own position.
+
 ### Checked
 
 - Which service answers after a reload: the model the extension restores in the dropdown (your
   last pick, from its own storage) is the one the next question goes to, and a dropdown a script
-  changed is refused, never routed to the other service. Verified live and with new tests. "My
+  changed is refused, not routed to the other service. Verified live and with new tests. "My
   ChatGPT" in the dropdown next to an "Open in claude.ai" footer is an earlier Claude answer: each
   answer keeps the footer of the service that answered it (now said in the README).
 - A ChatGPT footer never shows a usage figure.

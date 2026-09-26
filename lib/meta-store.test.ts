@@ -67,12 +67,25 @@ describe('MetaStore: one entry per answer, not per answer text', () => {
     expect(store.lookup(textHash('something else'), 1)).toBeUndefined();
   });
 
-  it('falls back to the only entry for a text when positions shifted', async () => {
+  // Codex review of 1.0.1: "the only entry for that text" was lent to another position, so ARENA's
+  // own model's (or ChatGPT's) identical answer there got Claude's footer, link and usage.
+  it("never lends an answer's entry to the same text at another position, even when it is the only one", async () => {
     const store = await fresh();
-    const h = textHash('a unique answer');
-    await store.put(CHAPTER, { hash: h, index: 7 }, meta({ c: C2 }));
-    expect(store.lookup(h, 3)?.c).toBe(C2);
-    expect(store.lookup(h)?.c).toBe(C2);
+    const h = textHash('ok');
+    await store.put(CHAPTER, { hash: h, index: 7 }, meta({ c: C2 })); // Claude's "ok"
+    expect(store.lookup(h, 3)).toBeUndefined(); // an "ok" from ARENA's own model, or another service
+    expect(store.lookup(h, 7)?.c).toBe(C2);
+    expect(store.lookup(h)?.c).toBe(C2); // no position (old callers): the only entry
+  });
+
+  it('a pruned entry is not replaced by another service\'s entry for the same text', async () => {
+    const store = await fresh();
+    const h = textHash('ok');
+    await store.put(CHAPTER, { hash: h, index: 0 }, meta({ c: C1, p: 'g', t: 0 })); // ChatGPT's "ok"
+    for (let i = 1; i <= META_MAX; i++) await store.put(CHAPTER, { hash: textHash(`a${i}`), index: i }, meta({ t: i }));
+    await store.put(CHAPTER, { hash: h, index: META_MAX + 1 }, meta({ c: C2, t: META_MAX + 1 })); // Claude's "ok"
+    expect(store.lookup(h, 0)).toBeUndefined(); // pruned: no footer rather than Claude's
+    expect(store.lookup(h, META_MAX + 1)?.c).toBe(C2);
   });
 
   it('prefers the given conversation, else the newest entry, at the same position', async () => {
