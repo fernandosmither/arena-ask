@@ -2,6 +2,27 @@
 
 All notable changes to ARENA Ask. Versions follow [semantic versioning](https://semver.org).
 
+## 1.0.1 (2026-09-26)
+
+### Changed
+
+- The Claude footer shows both usage limits claude.ai reports with an answer, e.g.
+  `Open in claude.ai ↗  7d 74% · 5h 4%`: the one closest to its limit comes first, a figure turns
+  amber from 80% and red from 95% (in ARENA's light and dark themes), and the tooltip explains
+  both. A window claude.ai didn't report is left out. 1.0.0 showed only the 5-hour figure, with
+  the 7-day one in the tooltip, so "5h: 4%" could be read as a cut-off 74%.
+- A Send while ARENA's dropdown shows a model other than the one you picked is refused with
+  "… Pick the model again, then send." (was "Pick My Claude or My ChatGPT in the dropdown again").
+
+### Checked
+
+- Which service answers after a reload: the model the extension restores in the dropdown (your
+  last pick, from its own storage) is the one the next question goes to, and a dropdown a script
+  changed is refused, never routed to the other service. Verified live and with new tests. "My
+  ChatGPT" in the dropdown next to an "Open in claude.ai" footer is an earlier Claude answer: each
+  answer keeps the footer of the service that answered it (now said in the README).
+- A ChatGPT footer never shows a usage figure.
+
 ## 1.0.0 (2026-09-26)
 
 First public release: open source (MIT), for the Chrome Web Store and Firefox Add-ons.

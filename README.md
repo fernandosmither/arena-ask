@@ -45,8 +45,9 @@ streams into ARENA's bubble from your account, rendered as markdown, with a link
   rewrite yours.
 - **The ARENA context is attached as reference material**, prefaced as page-supplied text rather
   than instructions (on claude.ai as an `arena-course-context.md` attachment; on ChatGPT inline).
-- **Footer** under each answer: **Open in claude.ai ↗** with your 5-hour usage, or **Open in
-  ChatGPT ↗** with the model that answered. ARENA keeps saving the chat history as usual; answers
+- **Footer** under each answer: **Open in claude.ai ↗** with your claude.ai usage for both limits
+  (`7d 74% · 5h 4%`: the 7-day and 5-hour windows, the one closest to its limit first, amber from
+  80% and red from 95%), or **Open in ChatGPT ↗** with the model that answered. ARENA keeps saving the chat history as usual; answers
   are re-rendered with their footer when you reload the page.
 - **No servers of ours, no telemetry, no analytics.** See [Privacy](#privacy).
 
@@ -290,7 +291,7 @@ ARENA shows "ARENA Ask couldn't send that question." plus the reason:
 | Space/Enter on a Send button the page focused (not you, with Tab) | click the Send button, or press Enter in the box |
 | Text dragged from the page itself and dropped in the box | type or paste your question instead |
 | The page's chapter data or address isn't the chapter it was loaded for | reload the page and ask again |
-| The dropdown shows (or ARENA's request names) a model you didn't pick | pick My Claude or My ChatGPT again, then send |
+| The dropdown shows (or ARENA's request names) a model you didn't pick | pick the model again, then send |
 | More than 60 s between Send and ARENA's request, or no Send at all | the generic "only sends a question you typed…" |
 | A team/enterprise account, or not the pinned one | switch account, or Forget pinned account in the Options |
 
@@ -329,8 +330,13 @@ When one of these changes, ARENA Ask refuses or ends the answer with a message r
 - Stopped questions (and their notes) are kept out of later turns; after 32 of them in a chapter's
   chat, the next question starts a new chat, without the earlier ARENA chat.
 - Claude's model is fixed to Claude Opus 5.5 (`lib/provider.ts`); ChatGPT uses your page's default
-  model. LaTeX and images in answers are shown as text. The Claude footer's usage figure is the
-  5-hour window claude.ai reports.
+  model. LaTeX and images in answers are shown as text. The Claude footer's usage figures are the
+  7-day and 5-hour windows claude.ai reported with that answer (a snapshot, not live); a window
+  claude.ai didn't report is left out.
+- The dropdown remembers the model you last picked (in any ARENA tab) and shows it again after a
+  reload. Earlier answers keep the footer of the service that answered them, so "My ChatGPT" in
+  the dropdown next to an "Open in claude.ai" footer is expected: the next question goes to what
+  the dropdown shows.
 
 **My ChatGPT specifically:**
 
@@ -404,7 +410,7 @@ pnpm install --frozen-lockfile
 pnpm zip:firefox
 ```
 
-This writes `.output/firefox-mv3/` (the add-on's files) and `.output/arena-ask-1.0.0-firefox.zip`,
+This writes `.output/firefox-mv3/` (the add-on's files) and `.output/arena-ask-1.0.1-firefox.zip`,
 the same package as the one submitted (checked: a rebuild from the sources zip is byte-identical).
 The build bundles the TypeScript sources with WXT/Vite; no code is fetched at build time or at run
 time. pnpm 10 may warn that it ignored the build scripts of `esbuild` and `spawn-sync`; the build

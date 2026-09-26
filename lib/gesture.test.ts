@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { ensureModelOptions } from './arena-ui';
+import { PROVIDERS, providerByOption } from './provider';
 import {
   GESTURE_TTL_MS,
   GestureGate,
@@ -1328,6 +1330,90 @@ describe('installGestureCapture', () => {
       choose('gpt');
       select().value = 'my-claude'; // the page, silently: not reported
       expect(seen).toEqual(['gpt']); // input, then its change (the same choice)
+    });
+
+    // Owner report (1.0.0): after a reload the dropdown showed "My ChatGPT" next to an answer with a
+    // Claude footer. Hypothesis: the choice the extension restores (by script, so no trusted event)
+    // doesn't reach the gate, which keeps routing to the provider picked before. It does reach it:
+    // a Send goes to what the dropdown shows, or is refused; never to the other provider.
+    describe('a reload that restores the remembered choice', () => {
+      const ARENA_OPTIONS = '<option value="gpt-4.1-mini" selected>gpt-4.1-mini</option><option value="gpt-4o-mini">gpt-4o-mini</option>';
+      const routeOf = (r: ReturnType<typeof askAs>) => (r.ok ? providerByOption(r.gesture.model!)?.id : r.why);
+      /** A fresh page: ARENA's own select (a new element), an empty box, a new gate and capture. */
+      const reload = () => {
+        cap.uninstall();
+        input.value = '';
+        select().outerHTML = `<select id="chat-model">${ARENA_OPTIONS}</select>`;
+        gate = new GestureGate();
+        cap = install();
+      };
+      /** The bridge's tick: our options, and the remembered choice restored into the real dropdown. */
+      const restore = (want: string | null) => ensureModelOptions(document, PROVIDERS, want, (v) => cap.noteModel(v));
+      const send = (q: string) => {
+        type(q);
+        clickSend();
+        return arenaSends();
+      };
+
+      it('pick My Claude, ask; reload restoring My ChatGPT: the Send goes to ChatGPT, as the dropdown shows', () => {
+        reload();
+        restore(null);
+        choose('my-claude'); // the viewer, for real
+        expect(routeOf(askAs(send('Reply with exactly: ok'), 'my-claude'))).toBe('claude');
+        reload(); // meanwhile My ChatGPT was picked in another ARENA tab: that is the stored choice now
+        restore('my-chatgpt');
+        expect(select().value).toBe('my-chatgpt');
+        expect(routeOf(askAs(send('Reply with exactly: ok'), 'my-chatgpt'))).toBe('chatgpt');
+        // ARENA reads the dropdown at the Send, so its request names my-chatgpt; one naming Claude is refused
+        expect(askAs(send('again'), 'my-claude')).toEqual({ ok: false, why: 'model' });
+      });
+
+      it('ARENA replacing the select element forgets the choice; the restore into the new one seeds it again', () => {
+        reload();
+        restore(null);
+        choose('my-claude');
+        select().outerHTML = `<select id="chat-model">${ARENA_OPTIONS}<option value="my-claude">c</option></select>`;
+        select().value = 'my-claude'; // the page, silently, on the new element
+        expect(askAs(send('q1'), 'my-claude')).toEqual({ ok: false, why: 'model' });
+        restore('my-claude'); // the bridge's next tick (the viewer's remembered choice)
+        expect(routeOf(askAs(send('q2'), 'my-claude'))).toBe('claude');
+      });
+
+      it('a script moving the dropdown off the restored choice: refused ("Pick the model again, then send") until the viewer picks', () => {
+        reload();
+        restore('my-chatgpt');
+        select().value = 'my-claude'; // the page, silently
+        const r = askAs(send('q1'), 'my-claude');
+        expect(r).toEqual({ ok: false, why: 'model' });
+        expect(refusalMessage('model')).toMatch(/Pick the model again, then send\.$/);
+        select().value = 'my-chatgpt'; // and back: still what the viewer's choice was, so it counts
+        expect(routeOf(askAs(send('q2'), 'my-chatgpt'))).toBe('chatgpt');
+        select().value = 'my-claude';
+        choose('my-claude'); // the viewer picks it for real
+        expect(routeOf(askAs(send('q3'), 'my-claude'))).toBe('claude');
+      });
+
+      it("a restore the dropdown doesn't end up showing seeds nothing", () => {
+        reload();
+        restore(null);
+        cap.noteModel('my-chatgpt'); // the dropdown shows gpt-4.1-mini
+        select().value = 'my-chatgpt'; // then the page shows it
+        expect(askAs(send('q'), 'my-chatgpt')).toEqual({ ok: false, why: 'model' });
+      });
+
+      it('ARENA re-rendering its options: the viewer’s choice is restored and seeded again, never a value the page set', () => {
+        reload();
+        restore('my-chatgpt');
+        select().innerHTML = ARENA_OPTIONS; // ARENA re-renders: our options are gone
+        restore('my-chatgpt');
+        expect(select().value).toBe('my-chatgpt');
+        expect(routeOf(askAs(send('q1'), 'my-chatgpt'))).toBe('chatgpt');
+        // A page script removing our options and selecting My Claude gets the viewer's choice back.
+        select().innerHTML = ARENA_OPTIONS;
+        restore('my-chatgpt');
+        select().value = 'my-claude';
+        expect(askAs(send('q2'), 'my-claude')).toEqual({ ok: false, why: 'model' });
+      });
     });
   });
 

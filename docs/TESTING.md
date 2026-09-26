@@ -142,7 +142,7 @@ spent on the web app's own new chat; the "Round 7" rows: after the round-6 revie
 4 completions; the "Round 8" rows: My ChatGPT, same day, 10 ChatGPT messages + 1 claude.ai; the
 "Round 9" rows: after the round-8 review fixes, 2026-09-26, 4 ChatGPT messages + 1 claude.ai; the
 "Round 10" rows: the Options page and the store screenshots, 2026-09-26, 1 claude.ai + 1 ChatGPT
-message). Delete every
+message; the "Round 11" rows: 1.0.1, same day, 2 claude.ai + 1 ChatGPT message). Delete every
 conversation and scratch project you create afterwards. Ask for yes/no or counts in a fixed format
 and read back only those (a regex over the bubble), never the answer's text: full-mode answers can
 carry personal data. Never read or write the system clipboard
@@ -207,6 +207,10 @@ tests.
 | Round 10: pinned accounts | after one question per service, reload the Options page; click both "Forget pinned account" buttons | "Pinned" for both, then "Not pinned yet" with the buttons disabled; `pinnedOrg` / `pinnedGpt` gone from the IndexedDB |
 | Round 10: screenshots | "Explain what intersect_ray_1d checks, in two sentences." with My Claude, then (after Clear chat history) My ChatGPT | answered through `offscreenFrame` (7 s and 13.5 s), footers "Open in claude.ai ↗ · 5h …" and "Open in ChatGPT ↗ · gpt-5-6-thinking"; both chats deleted afterwards (claude.ai `DELETE` 204 then 404; ChatGPT More → Delete, read-back 404) |
 | Round 10: Firefox smoke (no login) | Firefox 154, headless, throwaway profile, WebDriver BiDi `webExtension.install` of `.output/firefox-mv3`; the options page's settings messages; the Ray Tracing chapter; a `/pr-preview/` path | installs as `arena-ask@fdosmith.dev`; options page loads, `setMode` round-trips through the background (moz-extension sender accepted), a malformed request gets `{ok:false}`; ARENA's dropdown gets `my-claude` / `my-chatgpt`, `window.fetch` wrapped, bridge `1.0.0`; nothing on the preview path. Not covered: a real question on Firefox (needs a login in that profile) |
+| Round 11: restored choice (owner report) | 1.0.0: My Claude by trusted typeahead, "Reply with exactly: ok"; then `arenaAsk.modelChoice` = `my-chatgpt` in `chrome.storage.local` (as if picked in another ARENA tab), reload, type + trusted Send. 1.0.1: the same the other way round | before the Send, "My ChatGPT" in the dropdown next to the Claude answer's "Open in claude.ai" footer (the owner's screenshot); the Send went to ChatGPT (footer "Open in ChatGPT ↗ · gpt-5-6-thinking", SW log `provider: chatgpt`). 1.0.1: restored My Claude, answered by Claude. The restore seeds the gate; no misrouting |
+| Round 11: switch after an answer | trusted `m` on the dropdown after both answers | earlier footers unchanged ("Open in claude.ai", "Open in ChatGPT"); the new choice saved |
+| Round 11: dropdown set by a script | page sets `#chat-model.value` (no event) to the other service, then type + trusted Send | refused "… Pick the model again, then send."; nothing reached the service worker |
+| Round 11: usage footer | the Claude answer re-rendered after a reload, a fresh answer, and the stored usage forced to 0.97 / 0.85 | `7d 74% · 5h 7%`, then `7d 75% · 5h 11%`, tooltip naming both limits; forced: `5h 97% · 7d 85%` bold, red and amber (ARENA dark `#fca5a5` / `#fbbf24`, light `#dc2626` / `#b45309`); the ChatGPT footer shows no usage |
 
 Accepted asks without spending completions: open the ARENA tab, then `node $H reload`. That tab
 keeps its (now disconnected) bridge, whose gate still runs: an accepted ask fails with "ARENA Ask
@@ -236,7 +240,7 @@ harness at device scale factor 1:
    `browsingContext.captureScreenshot`. A fresh profile, so both accounts read "Not pinned yet".)
 
 Before keeping a screenshot, look at it: no account names, emails or personal memory content
-(the 5-hour usage figure is fine). Use a neutral question that doesn't invoke memory. Afterwards
+(the usage figures are fine). Use a neutral question that doesn't invoke memory. Afterwards
 delete both chats (claude.ai: a same-origin `DELETE` of the conversation from the claude.ai frame;
 ChatGPT: the chat's **More** menu → Delete → Delete chat), clear the extension's storage, IndexedDB
 and session rules, restore ARENA's localStorage, and stop the harness.

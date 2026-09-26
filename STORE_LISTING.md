@@ -27,9 +27,9 @@ ARENA_ASK_EXTENSION_ID=<the Chrome Web Store item's id> pnpm zip:store
 
 | File | Upload to |
 |---|---|
-| `arena-ask-1.0.0-chrome.zip` | CWS: the package (no manifest `key`; the store's id compiled in) |
-| `arena-ask-1.0.0-firefox.zip` | AMO: the add-on |
-| `arena-ask-1.0.0-sources.zip` | AMO: "source code" (reviewers rebuild with `pnpm zip:firefox`) |
+| `arena-ask-1.0.1-chrome.zip` | CWS: the package (no manifest `key`; the store's id compiled in) |
+| `arena-ask-1.0.1-firefox.zip` | AMO: the add-on |
+| `arena-ask-1.0.1-sources.zip` | AMO: "source code" (reviewers rebuild with `pnpm zip:firefox`) |
 
 It checks the manifests (MV3, version, permissions, host permissions, options page, no `key`;
 Firefox: gecko id `arena-ask@fdosmith.dev`, `strict_min_version` 128.0, data-collection
@@ -45,12 +45,12 @@ ARENA Ask's invisible chatgpt.com frame by the extension id compiled into the bu
 get a fixed id from the manifest `key` in `wxt.config.ts`. The Chrome Web Store doesn't take a `key`
 and assigns its own id, and it tells you that id only once the item exists. So:
 
-1. `pnpm zip:store --draft` builds `.output/store/arena-ask-1.0.0-chrome-draft.zip` with a
+1. `pnpm zip:store --draft` builds `.output/store/arena-ask-1.0.1-chrome-draft.zip` with a
    placeholder id. Upload it **only to create the item**. Never submit it for review.
 2. Copy the item's id from the dashboard (the 32-letter id in the item's URL and on its
    "Package" page).
 3. `ARENA_ASK_EXTENSION_ID=<that id> pnpm zip:store` builds the real package. Upload
-   `arena-ask-1.0.0-chrome.zip` as a new package for the same item, then submit.
+   `arena-ask-1.0.1-chrome.zip` as a new package for the same item, then submit.
 
 The id never changes for the life of the item, so later versions only need step 3 (keep the id in
 your shell history or a note). `ARENA_ASK_EXTENSION_ID` counts only in a store build
@@ -71,10 +71,10 @@ expects another extension id" warning.
 
 1. **Developer account** (one-time): <https://chrome.google.com/webstore/devconsole>, sign in, pay the
    one-time registration fee, set the publisher name (Fernando Smith) and verify the contact email.
-2. **Create the item**: *New item* → upload `arena-ask-1.0.0-chrome-draft.zip` (see above). Copy
+2. **Create the item**: *New item* → upload `arena-ask-1.0.1-chrome-draft.zip` (see above). Copy
    the item id.
 3. **Real package**: `ARENA_ASK_EXTENSION_ID=<id> pnpm zip:store`, then *Package* → *Upload new
-   package* → `.output/store/arena-ask-1.0.0-chrome.zip`.
+   package* → `.output/store/arena-ask-1.0.1-chrome.zip`.
 4. **Store listing** tab: description, category, language (from [Listing text](#listing-text));
    store icon `public/icon/128.png`; screenshots `store-assets/1-my-claude.png`,
    `2-my-chatgpt.png`, `3-options.png`; small promo tile `store-assets/promo-small-440x280.png`;
@@ -92,13 +92,13 @@ expects another extension id" warning.
 
 1. **Account**: <https://addons.mozilla.org/developers/>, sign in with a Firefox account, accept the
    developer agreement.
-2. **Packages**: the same `pnpm zip:store` run made `arena-ask-1.0.0-firefox.zip` and
-   `arena-ask-1.0.0-sources.zip` (AMO needs no id from us: the add-on id is
+2. **Packages**: the same `pnpm zip:store` run made `arena-ask-1.0.1-firefox.zip` and
+   `arena-ask-1.0.1-sources.zip` (AMO needs no id from us: the add-on id is
    `arena-ask@fdosmith.dev`, fixed in the manifest).
-3. **Submit a New Add-on** → *On this site* (listed) → upload `arena-ask-1.0.0-firefox.zip`.
+3. **Submit a New Add-on** → *On this site* (listed) → upload `arena-ask-1.0.1-firefox.zip`.
    Compatible platforms: **Firefox for desktop** only (untested on Android).
 4. **Source code**: answer *Yes* (the package is bundled by WXT/Vite) and upload
-   `arena-ask-1.0.0-sources.zip`. Paste [Notes for reviewers](#notes-for-reviewers) into
+   `arena-ask-1.0.1-sources.zip`. Paste [Notes for reviewers](#notes-for-reviewers) into
    *Notes to reviewer*; the build steps are also in the README ("Building from source").
 5. **Describe the add-on**: name, summary, description, categories, tags, support site, license
    **MIT**, privacy policy (paste PRIVACY.md), from [Listing text](#listing-text).
@@ -136,7 +136,7 @@ HOW TO USE
 2. Open a chapter on learn.arena.education.
 3. In the "Ask a Question" box, pick "My Claude (Opus 5.5)" or "My ChatGPT" in the model menu, and ask as usual.
 
-ARENA's own page builds the context (the sections you selected, with or without solutions). The answer streams into ARENA's bubble from your account, rendered as markdown, with a link to open the chat in claude.ai or ChatGPT and, for Claude, your 5-hour usage.
+ARENA's own page builds the context (the sections you selected, with or without solutions). The answer streams into ARENA's bubble from your account, rendered as markdown, with a link to open the chat in claude.ai or ChatGPT and, for Claude, your 5-hour and 7-day usage.
 
 WHAT YOU GET
 • One chat per ARENA chapter, in your own claude.ai / ChatGPT history. Follow-ups continue it; ARENA's "Clear chat history" starts a new one.
@@ -283,7 +283,7 @@ Credentials: no passwords. Inside claude.ai's page the content script reads docu
 Build from source: Node.js 22.12+ (built with 24.15.0), pnpm 10 (built with 10.34.3).
   pnpm install --frozen-lockfile
   pnpm zip:firefox
-Output: .output/firefox-mv3/ and .output/arena-ask-1.0.0-firefox.zip (identical to the submitted package). No code is downloaded at build or run time. pnpm 10 may warn that it ignored the build scripts of esbuild and spawn-sync; the build doesn't need them.
+Output: .output/firefox-mv3/ and .output/arena-ask-1.0.1-firefox.zip (identical to the submitted package). No code is downloaded at build or run time. pnpm 10 may warn that it ignored the build scripts of esbuild and spawn-sync; the build doesn't need them.
 
 Source and documentation: https://github.com/fernandosmither/arena-ask (README, docs/DESIGN.md for the security model).
 ```

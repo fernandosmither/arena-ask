@@ -104,7 +104,11 @@ background service worker        per-chapter state (its IndexedDB), picks a tran
 5. When the answer completes, the bridge renders it with a small escape-first markdown renderer
    plus an allowlist sanitizer, adds copy buttons (ARENA's `.code-copy-button` look) and the
    footer, and records `(answer position, conversation, hash(answer)) → {conversation, usage}` so bubbles ARENA re-renders from
-   localStorage get the same treatment on reload.
+   localStorage get the same treatment on reload. The Claude footer shows the usage windows
+   claude.ai reported with the answer (`7d 74% · 5h 4%`), the one closest to its limit first, each
+   amber from 80% and red from 95% (ARENA's `[data-theme="dark"]` gets lighter shades); the tooltip
+   explains both, and a window claude.ai didn't report is left out. A ChatGPT footer never shows
+   one.
 
 All ARENA selectors, endpoint paths and storage keys live in **`lib/arena-selectors.ts`**. The
 claude.ai endpoints are in **`lib/claude.ts`** (adapted from the [Tangent](https://github.com/fernandosmither/claude-tangents) extension).

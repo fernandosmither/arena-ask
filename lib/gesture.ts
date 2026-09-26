@@ -203,7 +203,7 @@ export function refusalMessage(why: Refusal): string {
     case 'duplicate':
       return 'Two questions arrived for one Send (a script on this page may be interfering), so ARENA Ask stopped both. Ask again.';
     case 'model':
-      return "The model in ARENA's dropdown (or the one its request named) isn't the one you picked; the page may have changed it. Pick My Claude or My ChatGPT in the dropdown again, then send.";
+      return "The model in ARENA's dropdown (or the one its request named) isn't the one you picked; the page may have changed it. Pick the model again, then send.";
     case 'none':
     default:
       return 'It only sends a question you typed in the box and sent with the Send button or Enter.';

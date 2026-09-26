@@ -73,7 +73,7 @@ Everything is stored **locally in your browser** and never transmitted to the de
   service is pinned to; and the ids of the private ARENA project(s) locked mode created on
   claude.ai.
 - **Extension storage** (`storage.local`): for each chapter, a map from a hash of each answer to
-  its chat id and the usage percentage shown under it (so the footer survives a reload); the model
+  its chat id and the usage percentages shown under it (so the footer survives a reload); the model
   you last picked in ARENA's dropdown; debug switches, if you set any.
 - **Session storage** (`storage.session`, cleared when the browser closes): which tab or hidden
   frame is serving questions, and short pauses after errors.

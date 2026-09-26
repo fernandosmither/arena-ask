@@ -1,6 +1,18 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LEGACY_MODEL_PREF_KEY, dropLegacyModelPref, ensureModelOptions } from './arena-ui';
-import { FOOTER_CLASS, STATE_ATTR, STATUS_CLASS, clearStatus, enhanceBubble, injectStyles, scanBubbles, setStatus } from './enhance';
+import {
+  FOOTER_CLASS,
+  STATE_ATTR,
+  STATUS_CLASS,
+  STYLES,
+  buildFooter,
+  clearStatus,
+  enhanceBubble,
+  injectStyles,
+  scanBubbles,
+  setStatus,
+  usageFigures,
+} from './enhance';
 import { textHash } from './hash';
 import { META_MAX, parseMetaMap, pruneMeta, type BubbleMeta } from './meta';
 
@@ -39,7 +51,7 @@ describe('enhanceBubble / scanBubbles', () => {
     expect(a.href).toBe(`https://claude.ai/chat/${CONV}`);
     expect(a.rel).toBe('noopener noreferrer');
     expect(a.textContent).toBe('Open in claude.ai ↗');
-    expect(footer.textContent).toContain('5h: 23%');
+    expect(footer.querySelector('.arena-ask-usage')!.textContent).toBe('7d 50% · 5h 23%');
   });
 
   it('leaves other models’ answers, error bubbles and in-flight bubbles alone', () => {
@@ -78,7 +90,7 @@ describe('enhanceBubble / scanBubbles', () => {
 
   it('omits the link without a conversation id and the usage without a number', () => {
     const box = arenaChat(['assistant', 'x']);
-    enhanceBubble(box.firstElementChild as HTMLElement, 'x', meta({ c: null, u: null }));
+    enhanceBubble(box.firstElementChild as HTMLElement, 'x', meta({ c: null, u: null, w: null }));
     const footer = box.querySelector(`.${FOOTER_CLASS}`)!;
     expect(footer.querySelector('a')).toBeNull();
     expect(footer.textContent).toBe('');
@@ -97,6 +109,64 @@ describe('enhanceBubble / scanBubbles', () => {
     injectStyles(document);
     injectStyles(document);
     expect(document.querySelectorAll('#arena-ask-style')).toHaveLength(1);
+  });
+});
+
+describe('usage in the footer', () => {
+  const usage = (m: BubbleMeta) => buildFooter(document, m).querySelector<HTMLElement>('.arena-ask-usage');
+  const figs = (m: BubbleMeta) =>
+    [...(usage(m)?.querySelectorAll<HTMLElement>('.arena-ask-usage-fig') ?? [])].map((e) => [e.textContent, e.dataset.level ?? '']);
+
+  // Owner report: "5h: 4%" alone (the 7-day 74% only in the tooltip) read as a truncated 74%.
+  it('shows both windows, the one closest to its limit first, and the tooltip explains both', () => {
+    const u = usage(meta({ u: 0.04, w: 0.74 }))!;
+    expect(u.textContent).toBe('7d 74% · 5h 4%');
+    expect(u.title).toContain('7-day limit 74% used');
+    expect(u.title).toContain('5-hour limit 4% used');
+    expect(u.title).toContain('closest to its limit comes first');
+    expect(usage(meta({ u: 0.9, w: 0.3 }))!.textContent).toBe('5h 90% · 7d 30%');
+    expect(usage(meta({ u: 0.5, w: 0.5 }))!.textContent).toBe('5h 50% · 7d 50%'); // a tie: 5-hour first
+  });
+
+  it('marks a figure amber from 80% and red from 95%', () => {
+    expect(figs(meta({ u: 0.79, w: 0.8 }))).toEqual([
+      ['7d 80%', 'warn'],
+      ['5h 79%', ''],
+    ]);
+    expect(figs(meta({ u: 0.95, w: 0.949 }))).toEqual([
+      ['5h 95%', 'high'],
+      ['7d 95%', 'high'], // rounds to 95
+    ]);
+    expect(figs(meta({ u: 1, w: 0.2 }))).toEqual([
+      ['5h 100%', 'high'],
+      ['7d 20%', ''],
+    ]);
+  });
+
+  it('shows only the windows claude.ai reported, and says which one is missing', () => {
+    expect(usage(meta({ u: 0.04, w: null }))!.textContent).toBe('5h 4%');
+    expect(usage(meta({ u: 0.04, w: null }))!.title).toContain("didn't report the 7-day limit");
+    expect(usage(meta({ u: null, w: 0.74 }))!.textContent).toBe('7d 74%');
+    expect(usage(meta({ u: null, w: 0.74 }))!.title).toContain("didn't report the 5-hour limit");
+    expect(usage(meta({ u: null, w: null }))).toBeNull();
+    expect(usage(meta({ u: Number.NaN, w: -1 }))).toBeNull();
+  });
+
+  it('a ChatGPT footer never shows a usage figure (chatgpt.com reports none), even if one was recorded', () => {
+    const f = buildFooter(document, meta({ p: 'g', u: 0.04, w: 0.74, m: 'gpt-5-6-thinking' }));
+    expect(f.querySelector('.arena-ask-usage')).toBeNull();
+    expect(f.textContent).toBe('Open in ChatGPT ↗· gpt-5-6-thinking');
+    expect(f.textContent).not.toMatch(/%|5h|7d/);
+    expect(usageFigures(meta({ p: 'g', u: 0.5, w: 0.5 }))).toEqual([]);
+  });
+
+  it('the usage is text, and the amber/red colours follow the ARENA theme', () => {
+    const u = usage(meta({ u: 0.97, w: 0.85 }))!;
+    expect(u.querySelector('script, img, a')).toBeNull();
+    expect(STYLES).toMatch(/\.arena-ask-meta \{ --arena-ask-warn: #[0-9a-f]{6}; --arena-ask-high: #[0-9a-f]{6}; \}/);
+    expect(STYLES).toMatch(/\[data-theme="dark"\] \.arena-ask-meta \{ --arena-ask-warn: #[0-9a-f]{6}; --arena-ask-high: #[0-9a-f]{6}; \}/);
+    expect(STYLES).toContain('[data-level="warn"] { color: var(--arena-ask-warn); }');
+    expect(STYLES).toContain('[data-level="high"] { color: var(--arena-ask-high); }');
   });
 });
 

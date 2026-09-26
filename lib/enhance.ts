@@ -10,7 +10,7 @@ import { UUID_RE } from './uuid';
 
 /**
  * Turns a finished Claude or ChatGPT answer (plain text in ARENA's bubble) into rendered markdown plus
- * a small footer ("Open in claude.ai ↗ · 5h: N%", "Open in ChatGPT ↗ · <model>"). ARENA's own
+ * a small footer ("Open in claude.ai ↗  7d 74% · 5h 4%", "Open in ChatGPT ↗ · <model>"). ARENA's own
  * history/rendering is left alone: we only rewrite bubbles whose text hash matches an answer we recorded.
  */
 
@@ -126,16 +126,67 @@ export function buildFooter(doc: Document, meta: BubbleMeta): HTMLElement {
     s.title = `The ${site.name} model that answered`;
     f.appendChild(s);
   }
-  const p5 = site === CLAUDE ? utilizationPercent(meta.u) : null;
-  if (p5 !== null) {
+  const figures = site === CLAUDE ? usageFigures(meta) : []; // chatgpt.com reports no usage
+  if (figures.length) {
     const s = doc.createElement('span');
-    s.className = 'arena-ask-usage';
-    s.textContent = `5h: ${p5}%`;
-    const p7 = utilizationPercent(meta.w);
-    s.title = `Your Claude usage in the current 5-hour window${p7 !== null ? ` (7-day: ${p7}%)` : ''}`;
+    s.className = USAGE_CLASS;
+    s.title = usageTitle(figures);
+    figures.forEach((fig, i) => {
+      if (i) s.append(' · ');
+      const e = doc.createElement('span');
+      e.className = `${USAGE_CLASS}-fig`;
+      e.setAttribute('data-window', fig.window);
+      const level = usageLevel(fig.pct);
+      if (level) e.setAttribute('data-level', level);
+      e.textContent = `${fig.window} ${fig.pct}%`;
+      s.appendChild(e);
+    });
     f.appendChild(s);
   }
   return f;
+}
+
+const USAGE_CLASS = 'arena-ask-usage';
+/** From this percentage up a usage figure is shown amber, and from USAGE_HIGH up red. */
+export const USAGE_WARN = 80;
+export const USAGE_HIGH = 95;
+
+export interface UsageFigure {
+  /** The claude.ai limit window: `5h` (the current session) or `7d` (the week). */
+  window: '5h' | '7d';
+  /** Whole percent of that window's limit used when the answer finished. */
+  pct: number;
+}
+
+export const usageLevel = (pct: number): 'high' | 'warn' | null =>
+  pct >= USAGE_HIGH ? 'high' : pct >= USAGE_WARN ? 'warn' : null;
+
+/**
+ * The Claude usage figures recorded with an answer, only those claude.ai reported, the one closest
+ * to its limit first (the 5-hour one on a tie). None for a ChatGPT answer.
+ */
+export function usageFigures(meta: BubbleMeta): UsageFigure[] {
+  if (meta.p === 'g') return [];
+  const out: UsageFigure[] = [];
+  const p5 = utilizationPercent(meta.u);
+  const p7 = utilizationPercent(meta.w);
+  if (p5 !== null) out.push({ window: '5h', pct: p5 });
+  if (p7 !== null) out.push({ window: '7d', pct: p7 });
+  return out.sort((a, b) => b.pct - a.pct); // stable: a tie keeps the 5-hour one first
+}
+
+const WINDOW_NAME = { '5h': '5-hour', '7d': '7-day' } as const;
+
+/** The usage tooltip: what each figure means, and which window claude.ai didn't report. */
+export function usageTitle(figures: readonly UsageFigure[]): string {
+  const parts = figures.map((f) => `${WINDOW_NAME[f.window]} limit ${f.pct}% used`);
+  let t = `Your claude.ai usage when this answer finished: ${parts.join(', ')}.`;
+  if (figures.length > 1) t += ' The one closest to its limit comes first.';
+  else {
+    const missing = figures[0]?.window === '5h' ? '7d' : '5h';
+    t += ` (claude.ai didn't report the ${WINDOW_NAME[missing]} limit.)`;
+  }
+  return `${t} Amber from ${USAGE_WARN}%, red from ${USAGE_HIGH}%.`;
 }
 
 /** Render `raw` (the answer text) into the bubble and put the footer right after it. */
@@ -213,6 +264,12 @@ export const STYLES = `
   font-size: 0.75rem; line-height: 1.4; color: var(--color-text-muted, #888); }
 .${FOOTER_CLASS} a { color: inherit; text-decoration: none; }
 .${FOOTER_CLASS} a:hover { color: var(--color-text, inherit); text-decoration: underline; }
+.${FOOTER_CLASS} { --arena-ask-warn: #b45309; --arena-ask-high: #dc2626; }
+[data-theme="dark"] .${FOOTER_CLASS} { --arena-ask-warn: #fbbf24; --arena-ask-high: #fca5a5; }
+.${USAGE_CLASS} { white-space: nowrap; cursor: help; }
+.${USAGE_CLASS}-fig[data-level] { font-weight: 600; }
+.${USAGE_CLASS}-fig[data-level="warn"] { color: var(--arena-ask-warn); }
+.${USAGE_CLASS}-fig[data-level="high"] { color: var(--arena-ask-high); }
 `;
 
 export function injectStyles(doc: Document): void {
